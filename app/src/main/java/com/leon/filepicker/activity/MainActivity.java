@@ -1,5 +1,6 @@
 package com.leon.filepicker.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup mRgBackArrawType;
     private int mIconType;
     private int mBackArrawType;
-
+    private USBStatesReceiver usbStatesReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +29,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initView();
         initListener();
+        usbStatesReceiver = new USBStatesReceiver();
+        usbStatesReceiver.registerReceiver(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        usbStatesReceiver.unregisterReceiver(this);
+    }
 
     private void initView() {
         mRgIconType = (RadioGroup) findViewById(R.id.rg_iconstyle);
@@ -50,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.radio_blue:
                         mIconType = Constant.ICON_STYLE_BLUE;
                         break;
+                    default:
                 }
             }
         });
@@ -66,12 +75,14 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.arrawback_stylethree:
                         mBackArrawType = Constant.BACKICON_STYLETHREE;
                         break;
+                    default:
                 }
             }
         });
     }
 
     public void openFromActivity(View view) {
+
         new LFilePicker()
                 .withActivity(this)
                 .withRequestCode(Consant.REQUESTCODE_FROM_ACTIVITY)
@@ -80,12 +91,12 @@ public class MainActivity extends AppCompatActivity {
                 .withBackIcon(mBackArrawType)
                 .withMutilyMode(false)
                 .withMaxNum(2)
-                .withStartPath("/storage/emulated/0/Download")//指定初始显示路径
+                .withStartPath(getSharedPreferences(Consant.TAG_KV_CACHE, Context.MODE_PRIVATE).getString(Consant.USB_PATH, "/"))//指定初始显示路径
                 .withNotFoundBooks("至少选择一个文件")
                 .withIsGreater(false)//过滤文件大小 小于指定大小的文件
                 .withFileSize(500 * 1024)//指定文件大小为500K
                 .withChooseMode(false)//文件夹选择模式
-                //.withFileFilter(new String[]{"txt", "png", "docx"})
+                .withFileFilter(new String[]{"txt", "png", "docx"})
                 .start();
     }
 
